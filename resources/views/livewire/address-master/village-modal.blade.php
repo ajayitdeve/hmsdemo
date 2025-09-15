@@ -96,7 +96,7 @@
                          </div>
                          <div class="col-md-12">
                              <div class="form-group">
-                                 <label>Village Name</label>
+                                 <label>Village Name/Town</label>
                                  <input class="form-control" type="text" wire:model='name' placeholder="village">
                                  @error('name')
                                      <span class="text-danger">{{ $message }}</span>
@@ -186,7 +186,7 @@
                          </div>
                          <div class="col-md-12">
                              <div class="form-group">
-                                 <label>Village Name</label>
+                                 <label>Village Name/Town</label>
                                  <input class="form-control" type="text" wire:model='name' placeholder="Village">
                                  @error('name')
                                      <span class="text-danger">{{ $message }}</span>

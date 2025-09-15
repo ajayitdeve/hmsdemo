@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\OpdBilling;
 
 use App\Models\Ipd\Ipd;
+use App\Models\OpdBillingDiscount;
 use App\Models\Patient;
 use Carbon\Carbon;
 use App\Models\User;
@@ -17,17 +18,22 @@ use Illuminate\Support\Facades\Auth;
 class OpdBilling extends Component
 {
 
-    public $umr, $ipd, $name, $doctor_name = null, $doctor_department, $doctor_unit;
+    public $bg_color = "#ffff", $umr, $ipd, $name, $doctor_name = null, $doctor_department, $doctor_unit;
     public $patientVisit, $patient;
     public $serviceGroups = [], $teriffs = [], $services = [];
     public $service, $service_id, $rate, $calculatedRate, $quantity = 1;
     public $arrCart = [], $counter = 0, $serviceDue;
-    public $payableAmount = 0, $payingAmount = 0, $dueAmount = 0;
+    public $payableAmount = 0, $payingAmount = 0, $dueAmount = 0, $receipt_amount = 0;
     public $discountAmount = 0, $discount_approved_by_id = 1, $users = [], $taxable_amount;
     public $discount = 0;
+    public $overallDiscount = 0;
+    public $total = 0;
     public $due_approved_by_id = 1;
-
     public $patient_type = 'op';
+
+    public $is_corporate_service = false;
+    public $corporate_name;
+    public $overall_discount_approved_by_id = 1;
 
     //patient Additional Details
     public $age, $relation, $fatherName, $address, $mobile;
@@ -53,6 +59,7 @@ class OpdBilling extends Component
             return redirect()->route('admin.opd-billing-osp');
         }
     }
+
     public function umrChanged()
     {
         $patient = Patient::where('registration_no', $this->umr)->first();
@@ -68,17 +75,23 @@ class OpdBilling extends Component
 
             //dd($patientVisit);
             $this->patientVisit = $patientVisit;
+            $corporate_registration = $patient?->corporate_registrations()->where("is_cancelled", 0)->latest()->first();
 
             //setting patient info
-            $this->name = $patient->name;
-            $this->relation = $patient->relation->name;
-            $this->fatherName = $patient->father_name;
-            $this->mobile = $patient->mobile != null ? $patient->mobile : null;
-            $this->address = $patient->address;
+            $this->name = $patient?->name;
+            $this->relation = $patient?->relation?->name;
+            $this->fatherName = $patient?->father_name;
+            $this->mobile = $patient?->mobile != null ? $patient?->mobile : null;
+            $this->address = $patient?->address;
             $this->age = Carbon::parse($patient->dob)->diff(Carbon::now())->format('%y years, %m months and %d days');
             $this->doctor_name = $patientVisit->doctor != null ? $patientVisit->doctor->name : null;
-            $this->doctor_department = $patientVisit->unit->department->name;
-            $this->doctor_unit = $patientVisit->unit->name;
+            $this->doctor_department = $patientVisit?->unit?->department?->name;
+            $this->doctor_unit = $patientVisit?->unit?->name;
+
+
+            $this->corporate_name = $corporate_registration?->organization?->name;
+            $this->bg_color = "#" . $corporate_registration?->organization?->color;
+            $this->is_corporate_service = $corporate_registration ? true : false;
 
             //check for dues
             $this->serviceDue = ServiceDue::where('patient_id', $this->patient->id)->where('is_due_cleared', 0)->get();
@@ -117,6 +130,11 @@ class OpdBilling extends Component
             $this->doctor_name = $patientVisit->doctor != null ? $patientVisit->doctor->name : null;
             $this->doctor_department = $patientVisit->unit->department->name;
             $this->doctor_unit = $patientVisit->unit->name;
+
+            $this->corporate_name = $ipd?->corporate_registration?->organization?->name;
+            $this->bg_color = "#" . $ipd?->corporate_registration?->organization?->color;
+            $this->is_corporate_service = $ipd?->corporate_registration ? true : false;
+
             //check for dues
             $this->serviceDue = ServiceDue::where('patient_id', $this->patient->id)->where('is_due_cleared', 0)->get();
             $this->prviousDuesAmount = $this->serviceDue->sum('due_amount');
@@ -129,13 +147,20 @@ class OpdBilling extends Component
     {
         //reset quantity to 1 on service change
         $this->quantity = 1;
-        // dd($this->service_id);
         $this->service = Service::find($this->service_id);
+
         if ($this->service) {
-            $this->rate = $this->service->charge;
+            $this->rate = number_format($this->service->charge, 2, '.', '');
+
+            // For corporate service
+            if ($this->is_corporate_service) {
+                $rate = $this->service?->corporate_service_fee?->charge ? number_format($this->service?->corporate_service_fee?->charge, 2, '.', '') : $this->rate;
+                $this->rate = $rate;
+            }
+
             $this->calculatedRate = $this->rate;
             $this->total = $this->calculatedRate;
-            //dd($this->rate);
+
             //reset discount $ and Amount
             $this->discount = 0;
             $this->discountAmount = 0;
@@ -159,6 +184,7 @@ class OpdBilling extends Component
             return 0;
         }
     }
+
     public function discountChanged()
     {
         $this->taxable_amount = $this->calculatedRate - $this->calDiscount();
@@ -174,7 +200,6 @@ class OpdBilling extends Component
 
     public function discountAmountChanged()
     {
-
         //setting $discountAmount
         $tempDiscountPercent = ($this->discountAmount * 100) / $this->calculatedRate;
         $this->discount = $tempDiscountPercent;
@@ -189,7 +214,10 @@ class OpdBilling extends Component
 
     public function addToCart()
     {
-        //$this->validate();
+        $this->validate([
+            'service_id' => 'required',
+            'quantity' => 'required|min:1',
+        ]);
 
         foreach ($this->arrCart as $item) {
             if ($item['service_id'] == $this->service_id) {
@@ -200,6 +228,7 @@ class OpdBilling extends Component
 
         $this->counter++;
         $cart = new ServiceCart($this->counter, $this->service_id, $this->service->code, $this->service->name, $this->quantity, $this->rate, $this->calculatedRate, $this->calDiscount(), $this->total, $this->discount_approved_by_id);
+
         $temp = [];
         $temp['id'] = $cart->id;
         $temp['service_code'] = $cart->service_code;
@@ -212,14 +241,23 @@ class OpdBilling extends Component
         $temp['total'] = $cart->total;
         $temp['discount_approved_by_id'] = $cart->discount_approved_by_id;
 
+        $temp['is_corporate_service'] = false;
+        $temp['corporate_service_fee_id'] = null;
 
+        // For corporate service
+        if ($this->is_corporate_service) {
+            $temp['is_corporate_service'] = $this->service?->corporate_service_fee ? true : false;
+            $temp['corporate_service_fee_id'] = $this->service?->corporate_service_fee?->id ?: null;
+            $temp['service_name'] = $this->service?->corporate_service_fee?->name ?: $cart->service_name;
+            $temp['service_code'] = $this->service?->corporate_service_fee?->code ?: $cart->service_code;
+        }
 
         array_push($this->arrCart, $temp);
         //save in session
         session()->put('cart-data', $this->arrCart);
         $this->calculatePayble();
         //reseting form
-        $this->reset('service_id', 'rate', 'quantity', 'calculatedRate',);
+        $this->reset('service_id', 'rate', 'quantity', 'calculatedRate', 'total');
         //reset discount $ and Amount
         $this->discount = 0;
         $this->discountAmount = 0;
@@ -231,16 +269,24 @@ class OpdBilling extends Component
         foreach ($this->arrCart as $item) {
             $sum = $sum + $item['total'];
         }
-        $this->payableAmount = $sum + $this->prviousDuesAmount;
-        $this->payingAmount = $sum + $this->prviousDuesAmount;;
+        $payableAmount = $sum + $this->prviousDuesAmount;
+
+        $this->payableAmount = $payableAmount - $this->overallDiscount;
+        $this->payingAmount = $this->payableAmount - $this->dueAmount;
+        $this->receipt_amount = $this->payingAmount;
     }
 
     public function payingAmountChanged()
     {
-        //dd("Paying Amount Changed");
-
         $this->dueAmount = $this->payableAmount - $this->payingAmount;
+        $this->receipt_amount = $this->payingAmount;
     }
+
+    public function overallDiscountChanged()
+    {
+        $this->calculatePayble();
+    }
+
     public function editCart($id)
     {
         unset($this->arrCart[$id - 1]);
@@ -250,6 +296,7 @@ class OpdBilling extends Component
         $this->render();
         session()->flash('message', 'Service Removed Successfully.');
     }
+
     public function save()
     {
         $this->validate([
@@ -259,14 +306,13 @@ class OpdBilling extends Component
         ]);
 
         $gross_amount = 0;
-        $discount_amount = 0;
+        $discount_amount = $this->overallDiscount;
         $other_amount = 0;
 
         $maxId = \App\Models\OpdBilling::max('id');
         $opd_billing_id = \App\Models\OpdBilling::create([
             'patient_id' => $this->patient->id,
             'patient_visit_id' => $this->patientVisit->id,
-            // 'service_id' => $this->service->id,
             'total' => $this->payableAmount,
             'paid' => $this->payingAmount,
             'balance' => $this->dueAmount,
@@ -279,7 +325,6 @@ class OpdBilling extends Component
             'total_amount' => $this->payableAmount,
             'paid_amount' => $this->payingAmount,
             'payment_by' => 'Cash',
-
             'created_by_id' => Auth::user()?->id,
             'code' => 'BILL' . date('y') . date('m') . date('d') . $maxId + 1
         ]);
@@ -291,8 +336,9 @@ class OpdBilling extends Component
             // $other_amount += $item['amount'] * ($item['cgst'] + $item['sgst']) / 100;
 
             $temp = [];
-
             $temp['opd_billing_id'] = $opd_billing_id->id;
+            $temp['is_corporate_service'] = $item['is_corporate_service'];
+            $temp['corporate_service_fee_id'] = $item['corporate_service_fee_id'];
             $temp['service_id'] = $item['service_id'];
             $temp['quantity'] = $item['quantity'];
             $temp['unit_service_price'] = $item['unit_service_price'];
@@ -315,7 +361,17 @@ class OpdBilling extends Component
             'gross_amount' => $gross_amount,
             'discount_amount' => $discount_amount,
             'other_amount' => $other_amount,
+            'is_overall_discount' => $this->overallDiscount > 0 ? 1 : 0,
         ]);
+
+        //saving discount in "opd_billing_discounts" table
+        if ($this->overallDiscount > 0) {
+            OpdBillingDiscount::create([
+                'opd_billing_id' => $opd_billing_id->id,
+                'discount' => $this->overallDiscount,
+                'discount_approved_by_id' => $this->overall_discount_approved_by_id
+            ]);
+        }
 
         if ($this->dueAmount) {
             //if $dueAmount!=0 then then Save due details in service_dues table

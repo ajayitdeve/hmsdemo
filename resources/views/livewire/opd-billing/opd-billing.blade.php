@@ -30,8 +30,7 @@
                     <div class="col-md-6">
                         <div class="form-check-inline">
                             <label class="form-check-label">
-                                <input type="radio" class="form-check-input" wire:model="patient_type"
-                                    value="op">OP
+                                <input type="radio" class="form-check-input" wire:model="patient_type" value="op">OP
                             </label>
                         </div>
                         <div class="form-check-inline">
@@ -92,7 +91,7 @@
                     @endif
 
                     <div class="col-md-9">
-                        <div class="card">
+                        <div class="card" style="background: {{ $bg_color }};">
 
                             <div class="card-body">
                                 <div class="row">
@@ -136,7 +135,14 @@
                                                 wire:model="doctor_unit">
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="">Corp. Name</label>
+                                            <input type="text" class="form-control" readonly
+                                                wire:model="corporate_name">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
                                         <div class="form-group">
                                             <label for="">Address</label>
                                             <input type="text" class="form-control" readonly wire:model="address">
@@ -158,8 +164,9 @@
                         <table class="table table-striped custom-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>Id</th>
+                                    <th>ID</th>
                                     <th>Service</th>
+                                    <th>Code</th>
                                     <th>Unit Price</th>
                                     <th>Quantity</th>
                                     <th>Discount</th>
@@ -173,7 +180,8 @@
                                 @foreach ($arrCart as $service)
                                     <tr>
                                         <td>{{ $service['id'] }}</td>
-                                        <td>{{ $service['service_name'] }} ({{ $service['service_code'] }})</td>
+                                        <td>{{ $service['service_name'] }}</td>
+                                        <td>{{ $service['service_code'] }}</td>
                                         <td>{{ $service['unit_service_price'] }}</td>
                                         <td>{{ $service['quantity'] }}</td>
                                         <td>{{ $service['discount'] }}</td>
@@ -188,6 +196,7 @@
                                     </tr>
                                 @endforeach
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -237,13 +246,11 @@
                             <div class="row">
                                 <label class="col-md-4">Rate<span class="text-danger">*</span></label>
                                 <div class="col-md-8">
-                                    <input type="number" class="form-control" wire:model="calculatedRate" min="1"
-                                        readonly />
+                                    <input type="number" class="form-control" wire:model="calculatedRate"
+                                        min="1" readonly />
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
 
                     <div class="row">
@@ -251,8 +258,8 @@
                             <div class="row pt-2">
                                 <label class="col-md-4">Dis.(%)<span class="text-danger">*</span></label>
                                 <div class="col-md-8 ">
-                                    <input type="number" maxlength="99" class="form-control" wire:model='discount' min="0" max="100"
-                                        wire:change="discountChanged" />
+                                    <input type="number" maxlength="99" class="form-control" wire:model='discount'
+                                        min="0" max="100" wire:change="discountChanged" />
                                 </div>
                             </div>
                         </div>
@@ -260,8 +267,8 @@
                             <div class="row pt-2">
                                 <label class="col-md-4">Dis. Amt.<span class="text-danger">*</span></label>
                                 <div class="col-md-8 ">
-                                    <input type="number" class="form-control" wire:model='discountAmount' min="0"
-                                        wire:change="discountAmountChanged" />
+                                    <input type="number" class="form-control" wire:model='discountAmount'
+                                        min="0" wire:change="discountAmountChanged" />
                                 </div>
                             </div>
                         </div>
@@ -276,7 +283,6 @@
                         <div class="col-md-2 text-center">
                             <button type="button" class="btn btn-primary btn-sm d-block "
                                 wire:click="addToCart">Add</button>
-
                         </div>
 
 
@@ -331,38 +337,68 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-md-3">
                             <div class="row pt-2">
-                                <label class="col-md-6">Due Amount<span class="text-danger">*</span></label>
+                                <label class="col-md-6">Due Amount</label>
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" wire:model="dueAmount" />
+                                    <input type="text" class="form-control" wire:model="dueAmount" readonly />
                                 </div>
                             </div>
                         </div>
 
+                        <div class="col-md-3">
+                            <div class="row pt-2">
+                                <label class="col-md-6">Overall Discount</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" wire:model="overallDiscount"
+                                        wire:change="overallDiscountChanged">
+                                </div>
+                            </div>
+                        </div>
+
+                        @if ($dueAmount > 0)
+                            <div class="col-md-6">
+                                <div class="row pt-2">
+                                    <label class="col-md-3">Due Approved By <span class="text-danger">*</span></label>
+                                    <div class="col-md-9">
+                                        <select wire:model='due_approved_by_id'
+                                            class="form-control bg-info text-white">
+                                            <option value="">Select one</option>
+                                            @foreach ($users as $user)
+                                                <option value="{{ $user->id }}">
+                                                    {{ $user->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($overallDiscount > 0)
+                            <div class="col-md-6">
+                                <div class="row pt-2">
+                                    <label class="col-md-3">Disc. Approved By <span
+                                            class="text-danger">*</span></label>
+                                    <div class="col-md-9">
+                                        <select wire:model='overall_discount_approved_by_id'
+                                            class="form-control bg-info text-white">
+                                            <option value="">Select one</option>
+                                            @foreach ($users as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
-                    @if ($dueAmount > 0)
-                        <div class="row p-2 m-2 bg-info">
-                            <div class="col-md-12">
-                                <label class="col-md-4">Due Approved By <span class="text-danger">*</span></label>
-                                <div class="col-md-8">
-                                    <select wire:model='due_approved_by_id' class="form-control">
-                                        {{-- <option value="-1">Select </option> --}}
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
 
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                     <div class="row">
                         <div class="col-md-12 text-center">
-
-                            {{-- <button type="submit" class="btn btn-primary "> Pay</button> --}}
-                            <button class="btn btn-primary m-2" wire:click="confirmation" href="#"
+                            <button class="btn btn-primary mt-4" wire:click="confirmation" href="#"
                                 data-toggle="modal" data-target="#confirmation">Pay</button>
                         </div>
                     </div>
@@ -372,18 +408,6 @@
             </div>
 
         </div>
-
-
-
-
-
-
-
-
-        {{-- </form> --}}
-
-
-
 
 
         <!-- Confirmation  Modal -->
@@ -399,7 +423,8 @@
                             <div class="modal-btn delete-action">
                                 <div class="row">
                                     <div class="col-6">
-                                        <button type="submit" class="btn btn-primary continue-btn btn-block">Pay</>
+                                        <button type="submit"
+                                            class="btn btn-primary continue-btn btn-block">Pay</button>
                                     </div>
                                     <div class="col-6">
                                         <a href="javascript:void(0);" data-dismiss="modal"

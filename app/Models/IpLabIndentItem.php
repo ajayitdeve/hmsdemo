@@ -21,4 +21,9 @@ class IpLabIndentItem extends Model
     {
         return $this->belongsTo(IpLabIndent::class, "ip_lab_indent_id");
     }
+
+    public function corporate_service_fee()
+    {
+        return $this->belongsTo(CorporateServiceFee::class, "corporate_service_fee_id");
+    }
 }

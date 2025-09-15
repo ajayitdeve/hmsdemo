@@ -825,7 +825,7 @@ $prefix = Request::route()->getPrefix();
                                         <li>
                                             <a class="@if (request()->routeIs('admin.village-master')) active @endif"
                                                 href="{{ route('admin.village-master') }}">
-                                                Village
+                                                Village/Town
                                             </a>
                                         </li>
                                     @endcan

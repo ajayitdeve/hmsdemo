@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CorporateServiceFee;
 use App\Models\IpServiceBilling;
 use App\Models\Service\Service;
 use Illuminate\Database\Migrations\Migration;
@@ -16,6 +17,8 @@ return new class extends Migration
         Schema::create('ip_service_billing_items', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(IpServiceBilling::class);
+            $table->boolean("is_corporate_service")->nullable();
+            $table->foreignIdFor(CorporateServiceFee::class)->nullable();
             $table->foreignIdFor(Service::class);
             $table->integer("quantity")->default(1);
             $table->decimal("unit_service_price", 10, 2)->nullable();

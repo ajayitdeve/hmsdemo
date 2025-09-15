@@ -215,8 +215,12 @@
                                             @foreach ($arrCart as $index => $item)
                                                 <tr>
                                                     <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $item->service->name }}</td>
-                                                    <td>{{ $item->service->code }}</td>
+                                                    <td>
+                                                        {{ $item?->corporate_service_fee?->name ?: $item->service->name }}
+                                                    </td>
+                                                    <td>
+                                                        {{ $item?->corporate_service_fee?->code ?: $item->service->code }}
+                                                    </td>
                                                     <td>{{ $item->service_date }}</td>
                                                     <td>{{ $item->unit_service_price }}</td>
                                                     <td>{{ $item->quantity }}</td>

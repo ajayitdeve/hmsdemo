@@ -24,6 +24,7 @@ class LabIndentCreate extends Component
     public $rate, $discount_approved_by_id = 1;
     public $payableAmount = 0, $payingAmount = 0, $dueAmount = 0, $prviousDuesAmount, $taxable_amount;
     public $service = null, $services = [], $users = [], $arrCart = [];
+    public $is_corporate_service = false;
 
     protected $rules = [
         'umr' => 'required',
@@ -92,6 +93,7 @@ class LabIndentCreate extends Component
 
             $this->corporate_name = $ipd?->corporate_registration?->organization?->name;
             $this->bg_color = "#" . $ipd?->corporate_registration?->organization?->color;
+            $this->is_corporate_service = $ipd?->corporate_registration ? true : false;
 
             $this->consultant_code = $ipd?->patient_visit?->doctor?->code;
             $this->consultant_name = $ipd?->patient_visit?->doctor?->name;
@@ -106,6 +108,13 @@ class LabIndentCreate extends Component
 
         if ($this->service) {
             $this->rate = number_format($this->service->charge, 2, '.', '');
+
+            // For corporate service
+            if ($this->is_corporate_service) {
+                $rate = $this->service?->corporate_service_fee?->charge ? number_format($this->service?->corporate_service_fee?->charge, 2, '.', '') : $this->rate;
+                $this->rate = $rate;
+            }
+
             $this->calculatedRate = $this->rate;
             $this->total = $this->calculatedRate;
             //reset discount $ and Amount
@@ -155,7 +164,6 @@ class LabIndentCreate extends Component
 
     public function discountAmountChanged()
     {
-
         //setting $discountAmount
         $tempDiscountPercent = ($this->discountAmount * 100) / $this->calculatedRate;
         $this->discount = $tempDiscountPercent;
@@ -178,6 +186,7 @@ class LabIndentCreate extends Component
 
         $this->counter++;
         $cart = new ServiceCart($this->counter, $this->service_id, $this->service->code, $this->service->name, $this->quantity, $this->rate, $this->calculatedRate, $this->calDiscount(), $this->total, $this->discount_approved_by_id);
+
         $temp = [];
         $temp['id'] = $cart->id;
         $temp['service_id'] = $cart->service_id;
@@ -192,7 +201,16 @@ class LabIndentCreate extends Component
         $temp['total'] = $cart->total;
         $temp['discount_approved_by_id'] = $cart->discount_approved_by_id;
 
+        $temp['is_corporate_service'] = false;
+        $temp['corporate_service_fee_id'] = null;
 
+        // For corporate service
+        if ($this->is_corporate_service) {
+            $temp['corporate_service_fee_id'] = $this->service?->corporate_service_fee?->id ?: null;
+            $temp['service_name'] = $this->service?->corporate_service_fee?->name ?: $cart->service_name;
+            $temp['service_code'] = $this->service?->corporate_service_fee?->code ?: $cart->service_code;
+            $temp['is_corporate_service'] = $this->service?->corporate_service_fee ? true : false;
+        }
 
         array_push($this->arrCart, $temp);
         //save in session
@@ -260,6 +278,8 @@ class LabIndentCreate extends Component
             $temp = [];
 
             $temp['ip_lab_indent_id'] = $lab_indent->id;
+            $temp['is_corporate_service'] = $item['is_corporate_service'];
+            $temp['corporate_service_fee_id'] = $item['corporate_service_fee_id'];
             $temp['service_id'] = $item['service_id'];
             $temp['quantity'] = $item['quantity'];
             $temp['unit_service_price'] = $item['unit_service_price'];

@@ -8,7 +8,7 @@
         <div class="page-header">
             <div class="row align-items-center">
                 <div class="col">
-                    <h3 class="page-title">Villages</h3>
+                    <h3 class="page-title">Villages/Town</h3>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active">Villages</li>
@@ -28,7 +28,7 @@
                     <table class="table table-striped mb-0">
                         <thead>
                             <tr>
-                                <th>Village</th>
+                                <th>Village/Town</th>
                                 <th>Block</th>
                                 <th>District</th>
                                 <th>State</th>

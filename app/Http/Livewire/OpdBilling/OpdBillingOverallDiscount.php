@@ -188,10 +188,9 @@ class OpdBillingOverallDiscount extends Component
 
     public function payingAmountChanged()
     {
-        dd("Paying Amount Changed");
-
         $this->dueAmount = $this->payableAmount - $this->payingAmount;
     }
+
     public function editCart($id)
     {
 
@@ -224,7 +223,6 @@ class OpdBillingOverallDiscount extends Component
                 'opd_billing_id' => $opd_billing_id->id,
                 'discount' => $this->overallDiscount,
                 'discount_approved_by_id' => $this->discount_approved_by_id
-
             ]);
         }
 

@@ -16,12 +16,11 @@ class OpdBillingController extends Controller
     {
 
         $opdBilling = OpdBilling::find($opd_billing_id);
-        // $opdBillingItems=$opdBilling->opdBillingItems;
-        // dd($opdBillingItems);
+
         //total amount
         $totalAmount = number_format(($opdBilling->opdBillingItems->where('is_cancled', '0')->sum('amount')), 2, '.', ',');
         //total taxabale amount
-        $totaldDiscount = number_format(($opdBilling->opdBillingItems->where('is_cancled', '0')->sum('discount')), 2, '.', ',');
+        $totaldDiscount = number_format($opdBilling->discount_amount, 2, '.', ',');
 
         $discountedAmount = ($opdBilling->opdBillingItems->where('is_cancled', '0')->sum('amount')) - ($opdBilling->opdBillingItems->where('is_cancled', '0')->sum('discount'));
         $createdBy = \App\Models\User::find($opdBilling->created_by_id)->first();

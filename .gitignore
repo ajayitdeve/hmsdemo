@@ -4,7 +4,6 @@
 /public/hot
 /public/storage
 /storage/*.key
-/storage/framework
 /vendor
 .env
 .env.backup
@@ -19,3 +18,10 @@ yarn-error.log
 /.idea
 /.vscode
 .composer.lock
+bootstrap
+/bootstrap/cache
+/bootstrap/cache/config.php
+/bootstrap/cache/services.php
+/bootstrap/cache/packages.php
+/bootstrap/cache/livewire-components.php
+/storage/logs/laravel.log

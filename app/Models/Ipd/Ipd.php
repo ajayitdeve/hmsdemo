@@ -19,7 +19,7 @@ class Ipd extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['patient_id', 'corporate_registration_id', 'patient_visit_id', 'cost_center_id', 'department_id', 'unit_id', 'ward_id', 'room_id', 'bed_id', 'referral_id', 'nationality_id', 'admin_type_id', 'case_type_id', 'admission_purpose_id', 'ipdcode', 'reason', 'company', 'policy_no', 'payment_by', 'payment', 'exp_app_amt', 'diet', 'admit_type', 'expected_stay_days', 'mother_admission_no', 'is_with_mother', 'pan_no', 'type_of_admin', 'estimated_amt', 'patient_source', 'passport_no'];
+    protected $guarded = [];
 
     public function patient()
     {

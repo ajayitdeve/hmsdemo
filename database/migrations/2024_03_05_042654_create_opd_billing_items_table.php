@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CorporateServiceFee;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +15,8 @@ return new class extends Migration
         Schema::create('opd_billing_items', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(\App\Models\OpdBilling::class)->constrained();
+            $table->boolean("is_corporate_service")->nullable();
+            $table->foreignIdFor(CorporateServiceFee::class)->nullable();
             $table->foreignIdFor(\App\Models\Service\Service::class)->constrained();
             $table->foreignId('discount_approved_by_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->smallInteger('quantity')->nullable();

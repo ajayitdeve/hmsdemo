@@ -20,8 +20,8 @@
                 <div class="card card-stats p-2">
                     <div class="">
                         <h3>All Opd Bills</h3>
-                        <a href="{{ route('admin.patient.list') }}" class="text-primary text-bold float-right mr-4">OPD
-                            Bills</a>
+                        {{-- <a href="{{ route('admin.patient.list') }}" class="text-primary text-bold float-right mr-4">OPD
+                            Bills</a> --}}
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

@@ -153,11 +153,13 @@
                             </td>
                             <td height="5" width="36%">
                                 <font size="2" face="Arial, Helvetica, sans-serif">
-                                    {{ $ip_service_billing_item->service->name }}</font>
+                                    {{ $ip_service_billing_item?->corporate_service_fee?->name ?: $ip_service_billing_item?->service?->name }}
+                                </font>
                             </td>
                             <td height="5" width="18%">
                                 <font size="2" face="Arial, Helvetica, sans-serif">
-                                    {{ $ip_service_billing_item->service->code }}</font>
+                                    {{ $ip_service_billing_item?->corporate_service_fee?->code ?: $ip_service_billing_item->service->code }}
+                                </font>
                             </td>
                             <td height="5" width="11%">
                                 <div align="center">

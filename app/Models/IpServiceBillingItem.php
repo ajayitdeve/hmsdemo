@@ -21,4 +21,9 @@ class IpServiceBillingItem extends Model
     {
         return $this->belongsTo(IpServiceBilling::class);
     }
+
+    public function corporate_service_fee()
+    {
+        return $this->belongsTo(CorporateServiceFee::class, "corporate_service_fee_id", "id");
+    }
 }

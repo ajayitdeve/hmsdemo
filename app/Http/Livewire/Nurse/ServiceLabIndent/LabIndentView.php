@@ -16,6 +16,7 @@ class LabIndentView extends Component
     public $indent_no, $indent_date, $consultant_code, $consultant_name, $remarks, $instructions, $clinical_summary_diagnosis;
 
     public $payableAmount = 0, $arrCart = [];
+    public $is_corporate_service = false;
 
     public function mount($indent_id)
     {
@@ -39,6 +40,7 @@ class LabIndentView extends Component
 
             $this->corporate_name = $lab_indent->ipd?->corporate_registration?->organization?->name;
             $this->bg_color = "#" . $lab_indent->ipd?->corporate_registration?->organization?->color;
+            $this->is_corporate_service = $lab_indent->ipd?->corporate_registration ? true : false;
 
             $this->indent_no = $lab_indent->code;
             $this->indent_date = date("Y-m-d", strtotime($lab_indent->created_at));

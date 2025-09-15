@@ -11,7 +11,8 @@ class IpPharmacyIndentBillingItem extends Model
 
     protected $guarded = [];
 
-    public function item() {
+    public function item()
+    {
         return $this->belongsTo(Item::class);
     }
 }
